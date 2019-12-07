@@ -1,13 +1,15 @@
 {
-  "name": "bolt-app-template",
+  "name": "Codey",
   "version": "0.0.1",
-  "description": "A basic template to spin up a Bolt app for Slack",
-  "main": "app.js",
+  "description": "Codeup Integrator Pod Slack App",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "@slack/bolt": "^1.4.0"
+    "@slack/bolt": "^1.4.1",
+    "@slack/client": "5.0.2",
+    "@slack/events-api": "2.3.0"
   },
   "engines": {
     "node": "11.x"
@@ -22,3 +24,4 @@
     "express"
   ]
 }
+

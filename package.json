@@ -9,7 +9,8 @@
   "dependencies": {
     "@slack/bolt": "^1.4.1",
     "@slack/client": "5.0.2",
-    "@slack/events-api": "2.3.0"
+    "@slack/events-api": "2.3.0",
+    "@slack/logger": "2.0.0"
   },
   "engines": {
     "node": "11.x"

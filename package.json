@@ -1,0 +1,27 @@
+{
+  "name": "Codey",
+  "version": "0.0.1",
+  "description": "Codeup Integrator Pod Slack App",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@slack/bolt": "^1.4.1",
+    "@slack/client": "5.0.2",
+    "@slack/events-api": "2.3.0"
+  },
+  "engines": {
+    "node": "11.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/bolt-app-template"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
+

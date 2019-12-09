@@ -18,9 +18,9 @@ app.event('app_home_opened', ({ event, say }) => {
         };
         store.addUser(user);
 
-        say(`Hello world, and welcome <@${event.user}>! Atlas is under construction. If you have any feedback or feature suggestions please reach us at totallyanemail@ourdomain.com`);
+        say(`Hello world, and welcome <@${event.user}>!`);
     } else {
-        say('Welcome back! How may I assist you?');
+        say('Hi again!');
     }
 });
 

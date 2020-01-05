@@ -1,0 +1,16 @@
+{
+  "name": "Romulus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Slack app being developed by software development students at Codeup",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Noland Seigler",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^1.4.1"
+  }
+}

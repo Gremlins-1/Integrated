@@ -1,5 +1,5 @@
 {
-  "name": "Romulus",
+  "name": "Alfred",
   "version": "1.0.0",
   "private": true,
   "description": "A Slack app being developed by software development students at Codeup",
@@ -11,6 +11,7 @@
   "author": "Noland Seigler",
   "license": "MIT",
   "dependencies": {
-    "@slack/bolt": "^1.4.1"
+    "@slack/bolt": "^1.5.0",
+    "axios": "0.19.1"
   }
 }

@@ -1,4 +1,4 @@
-
+const axios = require('axios');
 // start the party by destructuring the App property of the bolt framework
 const { App } = require('@slack/bolt');
 //require our store that we have not made yet.
@@ -48,7 +48,7 @@ app.event('app_home_opened', ({ event, say }) => {
 
 
 app.message("%frankensteinsMonster", ({ say }) => say("Romulus was the legendary founder and first king of Rome. Various traditions attribute the establishment of many of Rome's oldest legal, political, religious, and social institutions to Romulus and his contemporaries."));
-app.command('/echo', async ({ command, ack, say }) => {
+app.command('/alfredhelp', async ({ command, ack, say }) => {
     // Acknowledge command request
     ack();
 
@@ -75,29 +75,11 @@ app.message('%squirrelThis', async ({ message, context }) => {
         console.error(error);
     }
 });
-// //busted
-// app.command('/squirrel', async ({ command, ack, say}) => {
-//   // Acknowledge command request
-//   ack();
-// try {
-//         await app.client.reactions.add({
-//             token: context.botToken,
-//             name: 'squirrel',
-//             channel: command.channel,
-//             timestamp: command.ts,
-//         });
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-// //
-// // works but replaced by command
-// app.message('%music', ({ say }) => say(randomMusic()));
-// https://deciduous-collision.glitch.me/slack/events
-app.command('/music', async ({ command, ack, say }) => {
+
+// https://motley-power.glitch.me/slack/events
+app.command('/randommusic', async ({ command, ack, say }) => {
     // Acknowledge command request
     ack();
-
     say(randomMusic());
 });
 
@@ -105,7 +87,7 @@ app.command('/fullstack', async ({ command, ack, say }) => {
     // Acknowledge command request
     ack();
 
-    say(`Codeup Web Development Curriculum: https://java.codeup.com/`);
+    say(`Codeup Web Development Curriculum: https://java.codeup.com/toc`);
 });
 
 app.command('/gmail', async ({ command, ack, say }) => {
@@ -129,6 +111,83 @@ app.command('/codey', async ({ command, ack, say }) => {
     say(`{You told Codey:} '${command.text}' {Have you tried anything else?}`);
 });
 
+app.command('/rhymethis', async ({ command, ack, say }) => {
+    // Acknowledge command request
+    ack();
+    // Information to reach API
+    //works
+    axios.get('https://api.datamuse.com/words?rel_rhy=' + command.text)
+        .then(function (response) {
+            let outputArr = [];
+            let i = 0;
+            while (i < 10 ) {
+                outputArr.push(response.data[i]['word']);
+                i++
+            };
+            let output = outputArr.join(', ');
+            // let output = response.data[0]['word'];
+            say(`The top ten words that rhyme with ${command.text} are: ${output}`);
+        })
+        .catch(function (error) {
+            // handle error
+            say('error');
+        });
+});
+app.command('/giphy', async ({ command, ack,  say}) => {
+    // Acknowledge command request
+    ack();
+    // Information to reach API
+    //works
+    axios.get('https://api.giphy.com/v1/gifs/search?api_key=' + process.env.GIPHY_KEY + '&q=' + command.text + '&limit=25&offset=0&rating=G&lang=en')
+        .then(function (response) {
+            let outputArr = [];
+            let i = 0;
+            while (i < 10 ) {
+                outputArr.push(response.data['data'][i]['bitly_gif_url']);
+                i++
+            };
+            let index = Math.ceil(Math.random() * 11);
+            let output = outputArr[index];
+
+            // let output = response.data[0]['word'];
+            say(output);
+        })
+        .catch(function (error) {
+            // handle error
+            say('error');
+        });
+});
+
+// https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=surfing&key=[YOUR_API_KEY]
+app.command('/youtube', async ({ command, ack,  say}) => {
+    // Acknowledge command request
+    ack();
+    // Information to reach API
+    //&regionCode=US
+    axios.get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=' + command.text + '&regionCode=US' + '&key=' + process.env.YOUTUBE_KEY)
+        .then(function (response) {
+            // let res = response.data['items'][0]['id']['videoId'];
+
+            let outputArr = [];
+            let i = 0;
+            while (i < 24 ) {
+                outputArr.push(response.data['items'][i]['id']['videoId']);
+                i++
+            };
+            let index = Math.ceil(Math.random() * 24);
+            let output = outputArr[index];
+
+            say(`https://www.youtube.com/watch?v=${output}`);
+        })
+        .catch(function (error) {
+            // handle error
+            say('error');
+        });
+});
 app.event('member_joined_channel', ({ say }) => say(randomEnterReply()));
 app.event('member_left_channel', ({ say }) => say(randomLeaveReply()));
+
+
+
+
 

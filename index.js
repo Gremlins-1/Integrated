@@ -1,80 +1,117 @@
-const { App } = require('@slack/bolt');
-const store = require('./store');
+require('dotenv').config();//grab env vers from the .env but idk if this is necessary
 
-const app = new App({
-    signingSecret: process.env.SLACK_SIGNING_SECRET,
-    token: process.env.SLACK_BOT_TOKEN
-});
+const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
+const qs = require('qs');
+const signature = require('./verify-signature');
+const app = express();
 
+const rawBodyBuffer = (req, res, buf, encoding) => {
+    if (buf && buf.length) {
+        req.rawBody = buf.toString(encoding || 'utf8');
+    }
+};
 
+app.use(bodyParser.urlencoded({verify: rawBodyBuffer, extended: true }));
+app.use(bodyParser.json({ verify: rawBodyBuffer }));
 
-app.event('app_home_opened', ({ event, say }) => {
-    // Look up the user from DB
-    let user = store.getUser(event.user);
+const server = app.listen(5000); //port to listen on
 
-    if(!user) {
-        user = {
-            user: event.user,
-            channel: event.channel
+//on post req on actions path
+app.post('actions', (req, res) => {
+    //payload var is the payload property within the body key of the req obj.
+   const payload = JSON.parse(req.body.payload);
+   // destruct...set 3 vars extracting the properties from the payload var.
+   const {type, user, submission} = payload;
+
+   //verify the request. if its not verified send a 404 status..why not set?
+    if (!signature.isVerified(req)) {
+        res.sendStatus(404);
+        return;
+    }
+
+    if (type === 'message_action') {
+        //open dialog with bot
+        const dialogData = {
+            token: process.env.SLACK_BOT_TOKEN,
+            trigger_id: payload.trigger_id,
+            dialog: JSON.stringify({
+                title: 'SaveIt',
+                callback_id: 'saveit',
+                submit_label: 'SaveIt'
+                elements: [
+                    {
+                        label: 'Message Text',
+                        type: 'textarea',
+                        name: 'message'
+                        value: payload.message.text
+                    },
+                    {
+                        label: 'Importance',
+                        type: 'select',
+                        name: 'importance',
+                        value: 'Medium 💎',
+                        options: [
+                            {label: 'High', value: 'High 💎💎✨'}
+                            { label: 'Medium', value: 'Medium 💎' },
+                            { label: 'Low', value: 'Low ⚪️' }
+                        ],
+                    },
+                ]
+            })
         };
-        store.addUser(user);
+        //open the dialog by calling dialogs.open methdd and sending the payload
+        axios.post('https://slack.com/api/dialog.open', qs.stringify(dialogData))
+            .then((result) => {
+                if(result.data.error) {
+                    res.sendStatus(500);
+                } else {
+                    res.sendStatus(200);
+                }
+            })
+            .catch((err) => {
+                res.sendStatus(500);
+            });
+    } else if (type === 'dialog_submission') {
+        res.send('');
 
-        say(`Hello <@${event.user}>! I am Romulus. I am currently in development.`);
-    } else {
-        say(`Today is I can't get date to work.`);
+        //save the data in DB. Future functionality?
+        db.set(user.id, submission);
+        //DM the user a confirmation message
+        const attachments = [
+            {
+                title: 'Saved It!',
+                title_link: `http://example.com/${user.id}/clip`,
+                fields: [
+                    {
+                        title: 'Message',
+                        value: submission.message
+                    },
+                    {
+                        title: 'Importance',
+                        value: submission.importance,
+                        short: true
+                    },
+                ],
+            },
+        ];
+        const message = {
+            token: process.env.SLACK_BOT_TOKEN,
+            channel: user.id,
+            as_user: true, //bot user
+            attachments: JSON.stringify(attachments);
+        };
+        axios.post('https://slack.com/api/chat.postMessage', qs.stringify(message))
+            .then((result => {
+                console.log(result.data);
+            }))
+            .catch((err) => {
+                console.log(err);
+            })
     }
 });
 
-
-
-// Start your app
-(async () => {
-    await app.start(process.env.PORT || 3000);
-    console.log('⚡️ Bolt app is running!');
-})();
-//THIS WORKSSSS!!!!!!!
-app.message('%whoWasRomulus', ({ say }) => say("Romulus was the legendary founder and first king of Rome. Various traditions attribute the establishment of many of Rome's oldest legal, political, religious, and social institutions to Romulus and his contemporaries."));
-//THIS WORKKKKSS!!!!!!!^
-//THIS WORKSSSS!!!!!!!
-app.message(/open the (.*) doors/i, ({ say, context }) => {
-    const doorType = context.matches[1];
-
-    const text = (doorType === 'pod bay') ?
-        'I’m afraid I can’t let you do that.' :
-        `Opening ${doorType} doors`;
-
-    say(text);
+const server = app.listen(process.env.PORT || 5000, () => {
+    console.log('Express server listening on port %d in %s mode', server.address().port, app.settings.env);
 });
-
-//THIS WORKSSSS!!!!!!!
-app.message('%squirrelThis', async ({ message, context }) => {
-    try {
-        await app.client.reactions.add({
-            token: context.botToken,
-            name: 'squirrel',
-            channel: message.channel,
-            timestamp: message.ts,
-        });
-    } catch (error) {
-        console.error(error);
-    }
-});
-//THIS WORKKKKSS!!!!!!!^
-//THIS WORKSSSS!!!!!!!
-const music = ["https://www.youtube.com/watch?v=2TvWZEVf6go", "https://www.youtube.com/watch?v=y7e-GC6oGhg", "https://www.youtube.com/watch?v=8c9yOlPVpak", "https://www.youtube.com/watch?v=TDcJJYY5sms"];
-
-const randomMusic = () => music[Math.floor(Math.random() * music.length)];
-//THIS IS HOW YOU GET THE RESULT OF THE FUNCTION TO BE POSTED
-app.message('%music', ({ say }) => say(randomMusic()));
-// app.event('app_mention', ({ say }) => say(randomMusic()));
-//THIS WORKKKKSS!!!!!!!^
-
-const enterReplies = ["Welcome!", "Howdy!", "Hello friend.", "Gotcha", "Hello there.", "I see you"]
-const leaveReplies = ['Goodbye', 'Adios', 'Uh oh']
-
-
-const randomEnterReply = () => enterReplies[Math.floor(Math.random() * enterReplies.length)];
-const randomLeaveReply = () => leaveReplies[Math.floor(Math.random() * leaveReplies.length)];
-
-app.event('member_joined_channel', ({ say }) => say(randomEnterReply()));
-app.event('member_left_channel', ({ say }) => say(randomLeaveReply()));
